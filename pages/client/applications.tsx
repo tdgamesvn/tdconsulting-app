@@ -30,6 +30,14 @@ export default function ClientApplicationsPage() {
 
   const fetchApplications = async () => {
     setLoading(true);
+
+    // Bảo vệ nếu user chưa có id
+    if (!user?.id) {
+      setApplications([]);
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("applications")
       .select(`
@@ -38,7 +46,7 @@ export default function ClientApplicationsPage() {
         jobs ( title, company_name, client_id )
       `)
       .eq("status", "CHO_CLIENT_DUYET")
-      .eq("jobs.client_id", user?.id)
+      .eq("jobs.client_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -47,6 +55,7 @@ export default function ClientApplicationsPage() {
     } else {
       setApplications((data ?? []) as unknown as Application[]);
     }
+
     setLoading(false);
   };
 
@@ -70,6 +79,8 @@ export default function ClientApplicationsPage() {
       <h1 className="text-2xl font-bold mb-4">Duyệt ứng viên</h1>
       {loading ? (
         <p>Đang tải...</p>
+      ) : applications.length === 0 ? (
+        <p>Không có ứng viên nào chờ duyệt.</p>
       ) : (
         <table className="w-full text-left border">
           <thead>
